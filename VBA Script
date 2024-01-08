@@ -1,0 +1,117 @@
+Sub MultipleYearStock()
+
+    Dim LastRow As Long
+    Dim SummayRow As Long
+    Dim ticker As String
+    Dim YearlyChange As Double
+    Dim PercentageChange As Double
+    Dim TotalStockVolume As Double
+    Dim open_price As Double
+    Dim close_price As Double
+    Dim start As Integer
+    Dim increase_number As Double
+    Dim decrease_number As Double
+    Dim volume_number As Double
+    
+    For Each ws In ThisWorkbook.Worksheets
+    
+    ws.Cells(1, 9).Value = "Ticker"
+    ws.Cells(1, 10).Value = "Yearly Change"
+    ws.Cells(1, 11).Value = "Percentage Change"
+    ws.Cells(1, 12).Value = "Total Stock Volume"
+    
+    ws.Range("P1").Value = "Ticker"
+    ws.Range("Q1").Value = "Value"
+    ws.Range("O2").Value = "Greatest % Increase"
+    ws.Range("O3").Value = "Greatest % Decrease"
+    ws.Range("O4").Value = "Greatest Total Volume"
+    
+
+    'Determines the last row
+    LastRow = ws.Cells(Rows.Count, 1).End(xlUp).Row
+   
+
+    TotalStockVolume = 0
+    start = 2
+    j = 0
+    
+    For i = 2 To LastRow
+        
+    If ws.Cells(i + 1, 1).Value <> ws.Cells(i, 1).Value Then
+        TotalStockVolume = TotalStockVolume + ws.Cells(i, 7).Value
+        ticker = ws.Cells(i, 1).Value
+        
+        ' Find First non zero starting value
+        If TotalStockVolume = 0 Then
+        ' print the results
+            ws.Range("I" & 2 + j).Value = Cells(i, 1).Value
+            ws.Range("J" & 2 + j).Value = 0
+            ws.Range("K" & 2 + j).Value = "%" & 0
+            ws.Range("L" & 2 + j).Value = 0
+        Else
+            If ws.Cells(start, 3) = 0 Then
+                For find_value = start To i
+                    If ws.Cells(find_value, 3).Value <> 0 Then
+                        start = find_value
+                            Exit For
+                    End If
+                Next find_value
+        End If
+        open_price = ws.Cells(start, 3).Value
+        close_price = ws.Cells(i, 6).Value
+        
+        YearlyChange = close_price - open_price
+        PercentageChange = (YearlyChange / open_price)
+        
+        ws.Range("I" & 2 + j).Value = ticker
+        ws.Range("J" & 2 + j).Value = YearlyChange
+        ws.Range("J" & 2 + j).NumberFormat = "0.00"
+        ws.Range("K" & 2 + j).Value = PercentageChange
+        ws.Range("K" & 2 + j).NumberFormat = "0.00%"
+        ws.Range("L" & 2 + j).Value = TotalStockVolume
+        
+        
+        
+        'highlight yearly change to either red if negative or green if positive\
+        Select Case Change
+            Case YearlyChange > 0
+                ws.Range("J" & 2 + j).Interior.ColorIndex = 3
+            Case YearlyChange < 0
+                ws.Range("J" & 2 + j).Interior.ColorIndex = 4
+            Case Else
+                ws.Range("J" & 2 + j).Interior.ColorIndex = 0
+            End Select
+            End If
+        
+        j = j + 1
+        TotalStockVolume = 0
+        YearlyChange = 0
+        
+       Else
+       TotalStockVolume = TotalStockVolume + ws.Cells(i, 7).Value
+       End If
+ 
+ 
+        Next i
+        
+        'Outputing results for greatest increase, decrease, and volume
+            ' take the max and min and place them in a separate part in the worksheet
+        ws.Range("Q2") = "%" & WorksheetFunction.Max(ws.Range("K2:K" & LastRow))
+        ws.Range("Q3") = "%" & WorksheetFunction.Min(ws.Range("K2:K" & LastRow))
+        ws.Range("Q4") = WorksheetFunction.Max(ws.Range("L2:L" & LastRow))
+        
+        ' returns one less because header row not a factor
+        increase_number = WorksheetFunction.Match(WorksheetFunction.Max(ws.Range("K2:K" & LastRow)), ws.Range("K2:K" & LastRow), 0)
+        decrease_number = WorksheetFunction.Match(WorksheetFunction.Min(ws.Range("K2:K" & LastRow)), ws.Range("K2:K" & LastRow), 0)
+        volume_number = WorksheetFunction.Match(WorksheetFunction.Max(ws.Range("L2:L" & LastRow)), ws.Range("L2:L" & LastRow), 0)
+        
+        ' final ticker symbol for  total, greatest % of increase and decrease, and average
+        ws.Range("P2") = ws.Cells(increase_number + 1, 9)
+        ws.Range("P3") = ws.Cells(decrease_number + 1, 9)
+        ws.Range("P4") = ws.Cells(volume_number + 1, 9)
+        
+
+    Next ws
+    
+    
+End Sub
